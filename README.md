@@ -53,6 +53,14 @@ This lab aligns with industry AI security frameworks:
 
 ---
 
+## Research Areas
+
+• Jailbreak attack discovery
+• Prompt injection detection
+• LLM misuse simulation
+• System prompt leakage
+• Adversarial prompt engineering
+
 ## Testing Workflow
 
 1. Identify attack surface
