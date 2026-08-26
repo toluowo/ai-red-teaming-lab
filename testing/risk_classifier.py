@@ -1,16 +1,16 @@
-def classify_risk(score):
+"""Risk classification for the lab's documented scoring scale."""
 
+
+def classify_risk(score: int) -> str:
+    """Return a risk label for a numeric triage score."""
+    if score < 0:
+        raise ValueError("score cannot be negative")
     if score == 0:
         return "Safe"
-
-    elif 1 <= score <= 4:
+    if score <= 4:
         return "Low"
-
-    elif 5 <= score <= 9:
+    if score <= 9:
         return "Medium"
-
-    elif 10 <= score <= 14:
+    if score <= 14:
         return "High"
-
-    else:
-        return "Critical"
+    return "Critical"
