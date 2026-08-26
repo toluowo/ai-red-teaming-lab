@@ -147,15 +147,16 @@ Retest
 
 See [`reports/vulnerability_report_template.md`](reports/vulnerability_report_template.md) for the evidence model.
 
-## room-builder concept
-
-The repository is structured as a prototype for a browser-hosted training room. The learner progression is documented in [`docs/room-blueprint.md`](docs/room-blueprint.md), while [`docs/walkthrough.md`](docs/walkthrough.md) provides instructor guidance.
-
-The room intentionally emphasizes **learner action and reasoning** rather than passive reading: enumerate, test, prove, map, remediate, and retest.
-
 ## Responsible use
 
 Only test systems, models, data, and integrations for which you have explicit authorization. The included target is synthetic and offline by design. Never place real secrets, personal data, proprietary prompts, or confidential model outputs in this repository.
+
+## Training-room design
+
+The repository is structured as a prototype for a browser-hosted training environment. The learner progression is documented in [`docs/room-blueprint.md`](docs/room-blueprint.md), while [`docs/walkthrough.md`](docs/walkthrough.md) provides instructor guidance.
+
+The room emphasizes **learner action and reasoning** rather than passive reading: enumerate, test, prove, map, remediate, and retest.
+
 
 ## Project Evolution
 
@@ -163,9 +164,9 @@ This repository began as a collection of practical experiments into LLM adversar
 
 As the project evolved, the focus expanded from individual attack experiments toward reproducible AI security assessment.
 
-The current version introduces a synthetic vulnerable AI target, structured evaluation, evidence collection, risk classification, framework mapping, remediation and retesting, with the work organized as a hands-on learning lab.
+The current version builds on that earlier work with a synthetic vulnerable AI target, structured evaluation, evidence collection, risk classification, framework mapping, remediation, and retesting.
 
-Earlier research material remains available in the repository to document the progression of the project.
+Earlier research material remains available in the repository to document this progression.
 
 ## Author
 
