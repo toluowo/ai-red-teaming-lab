@@ -1,0 +1,11 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ai-red-teaming-lab"
+version = "0.3.1"
+description = "Hands-on LLM security assessment lab with a synthetic vulnerable target and behaviour-aware evaluation"
+requires-python = ">=3.10"
+dependencies = []
+
