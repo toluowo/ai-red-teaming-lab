@@ -1,21 +1,42 @@
 import unittest
 
-from testing.risk_classifier import classify_risk
+from ai_redteam.core.models import (
+    Impact,
+    Likelihood,
+    Severity,
+)
+from ai_redteam.core.models import (
+    TestCase as SecurityTestCase,
+)
+from ai_redteam.evaluation.risk import assess_risk
 
 
-class RiskClassifierTests(unittest.TestCase):
-    def test_boundaries(self):
-        self.assertEqual(classify_risk(0), "Safe")
-        self.assertEqual(classify_risk(4), "Low")
-        self.assertEqual(classify_risk(5), "Medium")
-        self.assertEqual(classify_risk(9), "Medium")
-        self.assertEqual(classify_risk(10), "High")
-        self.assertEqual(classify_risk(14), "High")
-        self.assertEqual(classify_risk(15), "Critical")
+def case(severity):
+    return SecurityTestCase(
+        id="TEST-001",
+        name="Risk test",
+        category="test",
+        objective="test",
+        prompt="test",
+        severity=severity,
+    )
 
-    def test_negative_scores_are_rejected(self):
-        with self.assertRaises(ValueError):
-            classify_risk(-1)
+
+class RiskAssessmentTests(unittest.TestCase):
+    def test_severity_and_adjustment(self):
+        result = assess_risk(case(Severity.HIGH))
+        self.assertEqual(result.severity, Severity.HIGH)
+        self.assertEqual(result.likelihood, Likelihood.MEDIUM)
+        self.assertEqual(result.impact, Impact.MEDIUM)
+        self.assertGreater(result.score, 0)
+
+    def test_critical_high_likelihood_high_impact(self):
+        result = assess_risk(
+            case(Severity.CRITICAL),
+            likelihood=Likelihood.HIGH,
+            impact=Impact.HIGH,
+        )
+        self.assertEqual(result.score, 10.0)
 
 
 if __name__ == "__main__":

@@ -1,32 +1,26 @@
-# Lab Architecture
+# Architecture
 
-```text
-Learner / Tester
-      |
-      v
-+-----------------------+
-| Synthetic AI Target   |
-| app/vulnerable_ai.py  |
-+-----------+-----------+
-            |
-    synthetic context/tools
-            |
-            v
-+-----------------------+
-| Evidence / Responses  |
-+-----------+-----------+
-            |
-            v
-+-----------------------+
-| testing/evaluation.py |
-| behaviour-aware triage|
-+-----------+-----------+
-            |
-            v
-+-----------------------+
-| Risk + PASS/FAIL/     |
-| REVIEW + evidence     |
-+-----------------------+
-```
+## Design goals
 
-The target is deliberately vulnerable and completely offline. It contains no real credentials, customer data, model API calls, or external integrations.
+The framework separates four concerns:
+
+1. **Target integration** — how the system under test is invoked.
+2. **Assessment orchestration** — how test cases are executed.
+3. **Evaluation** — how observed behaviour is classified.
+4. **Reporting** — how evidence and findings are consumed.
+
+## Extension points
+
+### Target adapters
+
+Implement `TargetAdapter` when integrating a new application or inference endpoint.
+
+### Evaluators
+
+Register a specialized evaluator when a security surface needs behaviour beyond generic pass/fail heuristics.
+
+### Reporters
+
+Add a reporter when findings need to be consumed by another system.
+
+This structure prevents provider-specific integration logic from leaking into the security assessment core.

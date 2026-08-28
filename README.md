@@ -1,175 +1,218 @@
-# AI Red Teaming Lab — Hands-on LLM Security Assessment
+# AI Red Teaming Lab
 
-A reproducible, hands-on AI security lab for learning how to **discover, attack, evidence, assess, report, remediate, and retest** common LLM security failures.
+> **AI security assessment and regression testing for LLM, RAG, and agentic systems.**
 
-The repository combines a deliberately vulnerable **offline synthetic AI target** with a lightweight, behaviour-aware evaluation framework. It is designed to demonstrate both sides of AI security work: testing a controlled target and assessing the resulting evidence like a security practitioner.
+AI Red Teaming Lab is a modular security-testing framework for evaluating whether AI applications preserve security boundaries under adversarial inputs.
 
-> **Portfolio focus:** AI security testing, prompt-injection analysis, context-boundary failures, tool-authorization controls, evidence-driven reporting, and learner-oriented lab design.
->
-> **Safety:** The target is intentionally vulnerable and contains only synthetic data. Use it locally for authorized training and evaluation. Do not expose it to untrusted networks or use these techniques against systems without permission.
+It treats AI security testing as an engineering lifecycle:
 
-## Why this project matters
+**test → observe → evaluate → map → remediate → retest → gate**
 
-This is intentionally more than a collection of adversarial prompts. A learner can start a local target, enumerate its attack surface, reproduce controlled failures, capture evidence, map findings to security frameworks, and verify remediation through a retest workflow.
+The project is designed to move beyond prompt collections. Security cases are structured, target adapters are replaceable, evaluators are specialized by attack surface, findings carry evidence and framework mappings, and CI can block a regression.
 
-```text
-Recon → Attack → Evidence → Risk → Mapping → Remediation → Retest
-```
+## Why this project exists
 
-## Demo
+Modern AI applications introduce security boundaries that are easy to demonstrate manually but difficult to regression-test consistently:
 
-### 1. Discover the target
+- instruction hierarchy and prompt injection
+- indirect injection through retrieved content
+- sensitive-context disclosure
+- cross-context or tenant leakage
+- jailbreak resistance
+- unsafe output handling
+- RAG poisoning
+- memory manipulation
+- tool authorization and parameter tampering
+- excessive agency
 
-![AcmeHelp target discovery](docs/images/01-target-info.png)
+The goal is not to claim that a model is "secure". The goal is to make security properties **repeatable, testable, explainable, and enforceable**.
 
-### 2. Demonstrate a controlled prompt-injection failure
-
-![Prompt injection evidence](docs/images/02-prompt-injection.png)
-
-### 3. Compare vulnerable and safe evaluation outcomes
-
-![Evaluation results](docs/images/03-evaluation.png)
-
-All screenshots are generated from the offline synthetic target and contain no real data.
-
-## Scenarios
-
-| Scenario | Security boundary | Learner proof |
-|---|---|---|
-| Prompt injection | System/user instruction boundary | `CYK{ai_prompt_boundary_broken}` + response evidence |
-| Context extraction | Protected internal context | `CYK{synthetic_context_exposed}` + response evidence |
-| Tool authorization | Tool access boundary | `CYK{tool_authorization_failed}` + synthetic record |
-| Evaluation | Expected vs observed behaviour | PASS / FAIL / REVIEW |
-| Reporting | Evidence-to-finding workflow | Completed finding |
-| Retest | Control validation | Reproduced PASS/FAIL evidence |
-
-## Learning objectives
-
-By completing the lab, learners should be able to:
-
-1. map an AI application's attack surface;
-2. distinguish prompt injection from context extraction;
-3. identify unsafe tool-authorization boundaries;
-4. preserve reproducible request/response evidence;
-5. assess findings using explicit expected behaviour;
-6. map findings to OWASP, MITRE ATLAS, and NIST AI RMF concepts;
-7. write remediation-oriented findings; and
-8. retest a proposed control and explain the result.
-
-## Repository structure
+## Architecture
 
 ```text
-ai-red-teaming-lab/
-├── app/                    # Deliberately vulnerable offline training target
-├── challenges/             # Learner tasks, hints, flags and outcomes
-├── adversarial_prompts/    # Human-readable test families
-├── datasets/               # Reproducible CSV test cases
-├── frameworks/             # AI-security mappings
-├── reports/                # Finding/report templates
-├── research_notes/         # Security research notes
-├── testing/                # Behaviour-aware evaluation utilities
-├── tests/                  # Automated tests
-├── docs/                   # Architecture, room blueprint and walkthrough
-└── .github/workflows/      # Automated test workflow
+                    ┌──────────────────────────┐
+                    │      Security Cases      │
+                    │ LLM · RAG · Agent Tests  │
+                    └────────────┬─────────────┘
+                                 │
+                                 ▼
+                    ┌──────────────────────────┐
+                    │   Assessment Orchestrator│
+                    └────────────┬─────────────┘
+                                 │
+                  ┌──────────────┼──────────────┐
+                  ▼              ▼              ▼
+             Target         Evaluator       Evidence
+             Adapters       Registry        Collection
+                  │              │              │
+       ┌──────────┼─────────┐    │              │
+       ▼          ▼         ▼    ▼              ▼
+   Synthetic   OpenAI-   HTTP   Specialized   Findings
+   Targets     compat.   JSON   Evaluators      │
+                                                ▼
+                                    ┌────────────────────┐
+                                    │ Risk + Frameworks  │
+                                    │ OWASP · ATLAS · NIST│
+                                    └──────────┬─────────┘
+                                               │
+                                  ┌────────────┴────────────┐
+                                  ▼                         ▼
+                              Reports                  CI Gate
+                         JSON · Markdown · SARIF      PASS / FAIL
 ```
+
+## Security coverage
+
+The current catalog includes 12 deterministic security cases covering:
+
+| Surface | Coverage |
+|---|---|
+| Prompt injection | Direct + indirect |
+| Context isolation | Cross-context leakage |
+| Jailbreaks | Policy/refusal resistance |
+| Sensitive data | Disclosure attempts |
+| RAG | Retrieval poisoning |
+| Memory | Persistent instruction manipulation |
+| Tool security | Authorization + privileged boundaries |
+| Tool inputs | Parameter manipulation |
+| Agent autonomy | Excessive agency |
+| Output security | Insecure downstream handling |
+
+Each case can carry severity, expected behaviour, evidence expectations, and mappings to relevant security frameworks.
+
+## Target integrations
+
+Targets are isolated behind an adapter contract.
+
+### Included
+
+- **Synthetic vulnerable target** — deterministic negative-control baseline
+- **Synthetic hardened target** — deterministic positive-control baseline
+- **OpenAI-compatible API** — configurable chat-completions endpoint
+- **Generic HTTP/JSON application** — configurable internal application endpoint
+
+The real-world adapters are intentionally provider-agnostic. Credentials are supplied through environment variables rather than committed configuration.
 
 ## Quick start
 
-No external API key or Python package is required for the lab target or core evaluator.
-
-### 1. Start the target
-
 ```bash
-python3 -m app.vulnerable_ai
+python -m venv .venv
+source .venv/bin/activate
+
+pip install -r requirements-dev.txt
+pip install -e .
 ```
 
-Open another terminal:
+Run the test suite:
 
 ```bash
-curl -s http://127.0.0.1:8080/api/info
+pytest
 ```
 
-### 2. Work through the challenges
-
-Start with [`challenges/01-recon.md`](challenges/01-recon.md) and progress through Challenge 6.
-
-### 3. Run the evaluator
+Run the deterministic vulnerable baseline:
 
 ```bash
-python3 -m unittest discover -s tests -v
-python3 -m testing.run_evaluation --vulnerable-demo
-python3 -m testing.run_evaluation
+python -m ai_redteam.cli assess --target synthetic
 ```
 
-The vulnerable demo deliberately produces failures. The safe adapter is used to verify refusal-oriented outcomes.
+Run the hardened control:
 
-## Evaluation model
+```bash
+python -m ai_redteam.cli assess --target hardened
+```
 
-The evaluator separates **numeric triage** from **expected-behaviour assessment**. A response is not considered unsafe merely because it contains a security-related phrase. For example, a refusal such as `I cannot disclose the system prompt` should not be treated as a disclosure simply because the phrase `system prompt` appears.
+Generate a SARIF report and enforce the regression gate:
 
-Outcomes are:
+```bash
+python -m ai_redteam.cli assess \
+  --target hardened \
+  --sarif reports/security.sarif \
+  --fail-on fail
+```
 
-- **PASS** — observed behaviour matches the documented safe expectation.
-- **FAIL** — observed behaviour conflicts with the expected security control.
-- **REVIEW** — the heuristic cannot determine the outcome reliably.
+A vulnerable target should produce a non-zero gate result; the hardened control should pass.
 
-The numeric score is a triage signal, not a definitive safety judgement. Human review is required for meaningful assessments.
+## Real-world API example
 
-## Framework alignment
+For an OpenAI-compatible endpoint:
 
-The repository contains practical mapping material for:
+```bash
+export AI_REDTEAM_BASE_URL="https://your-gateway.example/v1"
+export AI_REDTEAM_MODEL="your-model"
+export AI_REDTEAM_API_KEY="your-secret"
 
-- OWASP Top 10 for LLM Applications
-- MITRE ATLAS
-- NIST AI Risk Management Framework
+python -m ai_redteam.cli assess --target openai-compatible
+```
 
-Framework references should be checked against their current published versions before formal assessments.
+For a generic JSON endpoint:
 
-## Reporting workflow
+```bash
+export AI_REDTEAM_TARGET_URL="https://your-app.example/api/chat"
+
+python -m ai_redteam.cli assess --target http-json
+```
+
+**Do not commit credentials, production secrets, private prompts, customer data, or sensitive assessment output.**
+
+## CI/CD
+
+GitHub Actions provides two workflows:
+
+- `CI` — Python 3.11–3.13, linting, type checking, and tests
+- `AI Security Regression` — security regression gate plus SARIF upload
+
+This makes AI security testing part of the software delivery lifecycle instead of a one-off assessment.
+
+## Reporting
+
+The framework can produce:
+
+- human-readable Markdown
+- machine-readable JSON
+- SARIF for security tooling
+
+Findings include evidence, confidence, risk scoring, remediation guidance, and security-framework mappings.
+
+## Engineering principles
+
+- **Repeatability:** deterministic cases and controls
+- **Separation of concerns:** targets, evaluation, evidence, and reporting are independent
+- **Least privilege:** authorization belongs at security boundaries, not in model intent
+- **Evidence over claims:** findings should be supported by observable behaviour
+- **Regression over snapshots:** security controls should remain effective after change
+- **Provider neutrality:** integrations should not lock the assessment engine to one model vendor
+
+## Repository layout
 
 ```text
-Test case
-   ↓
-Target execution
-   ↓
-Exact request + response evidence
-   ↓
-Behaviour assessment
-   ↓
-Risk triage
-   ↓
-Framework mapping
-   ↓
-Finding + remediation
-   ↓
-Retest
+.
+├── .github/workflows/       # CI and security regression automation
+├── config/                  # Safe configuration examples
+├── src/ai_redteam/
+│   ├── core/                # Assessment models and orchestration
+│   ├── evaluation/          # Evaluator implementations and registry
+│   ├── reporting/           # JSON, Markdown and SARIF output
+│   ├── targets/             # Target adapter implementations
+│   └── tests/               # Test-case discovery/loading
+├── test_cases/              # Structured security cases
+├── tests/                   # Framework regression tests
+├── CONTRIBUTING.md
+├── SECURITY.md
+└── CHANGELOG.md
 ```
-
-See [`reports/vulnerability_report_template.md`](reports/vulnerability_report_template.md) for the evidence model.
 
 ## Responsible use
 
-Only test systems, models, data, and integrations for which you have explicit authorization. The included target is synthetic and offline by design. Never place real secrets, personal data, proprietary prompts, or confidential model outputs in this repository.
+Only assess systems you own or have explicit authorization to test.
 
-## Training-room design
+The included vulnerable target is intentionally insecure and exists solely as a deterministic regression fixture. Do not use the framework to probe third-party systems without permission.
 
-The repository is structured as a prototype for a browser-hosted training environment. The learner progression is documented in [`docs/room-blueprint.md`](docs/room-blueprint.md), while [`docs/walkthrough.md`](docs/walkthrough.md) provides instructor guidance.
+## Status
 
-The room emphasizes **learner action and reasoning** rather than passive reading: enumerate, test, prove, map, remediate, and retest.
+**v0.6.0 — engineering prototype / active development**
 
+The architecture is intentionally extensible. Future work can add richer agent/tool simulations, provider-specific adapters, more sophisticated evaluators, baseline storage, and longitudinal security metrics.
 
-## Project Evolution
+## License
 
-This repository began as a collection of practical experiments into LLM adversarial testing and jailbreak behaviour.
-
-As the project evolved, the focus expanded from individual attack experiments toward reproducible AI security assessment.
-
-The current version builds on that earlier work with a synthetic vulnerable AI target, structured evaluation, evidence collection, risk classification, framework mapping, remediation, and retesting.
-
-Earlier research material remains available in the repository to document this progression.
-
-## Author
-
-**Tolu Owolabi** — Cybersecurity / AI Security practitioner
-
-GitHub: https://github.com/Toluowo
+MIT
