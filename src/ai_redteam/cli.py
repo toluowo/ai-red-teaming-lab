@@ -6,7 +6,7 @@ from .core.orchestrator import AssessmentOrchestrator
 from .evaluation import BehaviourEvaluator
 from .reporting import write_json, write_markdown, write_sarif
 from .targets import HardenedTarget, HTTPJSONTarget, OpenAICompatibleTarget, SyntheticTarget
-from .tests.loader import discover_test_cases
+from .tests.loader import discover_test_cases, select_test_cases
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -62,7 +62,11 @@ def main(argv: list[str] | None = None) -> int:
             return 2
 
         target = targets[args.target]()
-        cases = discover_test_cases(args.tests)
+        try:
+            cases = select_test_cases(args.tests)
+        except ValueError as exc:
+            print(f"Invalid test selection: {exc}")
+            return 2
         report = AssessmentOrchestrator(BehaviourEvaluator()).run(cases, target)
 
         print(f"Target: {report.target}")

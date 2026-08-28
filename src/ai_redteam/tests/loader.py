@@ -273,7 +273,62 @@ def discover_test_cases(root: str | Path) -> list[TestCase]:
             priority.get(case.id, 2),
             case.id,
         ),
+
     )
+
+def select_test_cases(
+    selector: str,
+    root: str | Path = "test_cases",
+) -> list[TestCase]:
+    """Discover all tests or select specific test cases by ID.
+
+    The selector may be:
+    - a directory containing YAML test cases
+    - a single test case ID
+    - a comma-separated list of test case IDs
+    """
+    selector = selector.strip()
+
+    if not selector:
+        raise ValueError("Test selector cannot be empty.")
+
+    selector_path = Path(selector)
+
+    # Preserve directory-based discovery.
+    if selector_path.is_dir():
+        cases = discover_test_cases(selector_path)
+        if not cases:
+            raise ValueError(
+                f"No test cases found in directory: {selector}"
+            )
+        return cases
+
+    # Otherwise interpret the selector as one or more test IDs.
+    requested_ids = [
+        item.strip()
+        for item in selector.split(",")
+        if item.strip()
+    ]
+
+    if not requested_ids:
+        raise ValueError("No test case IDs were provided.")
+
+    available = discover_test_cases(root)
+    by_id = {case.id: case for case in available}
+
+    missing = [
+        case_id
+        for case_id in requested_ids
+        if case_id not in by_id
+    ]
+
+    if missing:
+        raise ValueError(
+            "Unknown test case ID(s): "
+            + ", ".join(missing)
+        )
+
+    return [by_id[case_id] for case_id in requested_ids]
 
 
 def load_file(path: str | Path) -> list[TestCase] | TestCase:
