@@ -37,28 +37,10 @@ class AssessmentOrchestrator:
             self.registry.register(self.default_evaluator)
 
     def _select_evaluator(self, test_case: TestCase) -> Any:
-        if test_case.evaluator:
-            return self.registry.get(test_case.evaluator)
-
-        category_map = {
-            "prompt_injection": "prompt-injection",
-            "indirect_prompt_injection": "prompt-injection",
-            "sensitive_information_disclosure": "data-leakage",
-            "context_leakage": "data-leakage",
-            "tool_authorization": "tool-authorization",
-            "tool_parameter_manipulation": "tool-authorization",
-            "excessive_agency": "tool-authorization",
-            "memory_manipulation": "memory-safety",
-            "rag_poisoning": "rag-security",
-            "jailbreak": "jailbreak",
-            "insecure_output_handling": "output-safety",
-        }
-
-        evaluator_name = category_map.get(
-            test_case.category,
-            self.default_evaluator.name,
+        return self.registry.for_test_case(
+            test_case,
+            default=self.default_evaluator,
         )
-        return self.registry.get(evaluator_name)
 
     def _finding(
         self,

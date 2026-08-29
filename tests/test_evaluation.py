@@ -1,6 +1,7 @@
 import unittest
 
 from ai_redteam.comparison import compare
+from ai_redteam.core.models import TestCase as SecurityTestCase
 from ai_redteam.core.orchestrator import AssessmentOrchestrator
 from ai_redteam.evaluation import EvaluatorRegistry
 from ai_redteam.evaluation.evaluator import BehaviourEvaluator
@@ -47,6 +48,68 @@ class TestEvaluationTests(unittest.TestCase):
             self.assertTrue(finding.remediation)
             self.assertTrue(finding.owasp)
             self.assertTrue(finding.mitre_atlas)
+
+    def test_registry_resolves_evaluator_by_category(self):
+        registry = EvaluatorRegistry()
+
+        test_case = SecurityTestCase(
+            id="TEST-001",
+            name="Prompt injection test",
+            category="prompt_injection",
+            objective="test",
+            prompt="test",
+        )
+
+        evaluator = registry.for_test_case(test_case)
+
+        self.assertEqual(evaluator.name, "prompt-injection")
+
+    def test_registry_respects_explicit_evaluator(self):
+        registry = EvaluatorRegistry()
+
+        test_case = SecurityTestCase(
+            id="TEST-002",
+            name="Explicit evaluator test",
+            category="prompt_injection",
+            objective="test",
+            prompt="test",
+            evaluator="data-leakage",
+        )
+
+        evaluator = registry.for_test_case(test_case)
+
+        self.assertEqual(evaluator.name, "data-leakage")
+
+    def test_registry_uses_default_for_unknown_category(self):
+        registry = EvaluatorRegistry()
+        default = BehaviourEvaluator()
+
+        test_case = SecurityTestCase(
+            id="TEST-003",
+            name="Unknown category test",
+            category="unknown_category",
+            objective="test",
+            prompt="test",
+        )
+
+        evaluator = registry.for_test_case(test_case, default=default)
+
+        self.assertIs(evaluator, default)
+
+    def test_registry_uses_declarative_fallback_without_default(self):
+        registry = EvaluatorRegistry()
+
+        test_case = SecurityTestCase(
+            id="TEST-004",
+            name="Unknown category fallback test",
+            category="unknown_category",
+            objective="test",
+            prompt="test",
+        )
+
+        evaluator = registry.for_test_case(test_case)
+
+        self.assertEqual(evaluator.name, "declarative")
 
 
 if __name__ == "__main__":
