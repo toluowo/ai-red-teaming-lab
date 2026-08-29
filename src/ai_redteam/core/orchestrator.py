@@ -6,28 +6,17 @@ from typing import Any
 
 from ..evaluation.evidence import collect_evidence
 from ..evaluation.registry import EvaluatorRegistry
+from ..evaluation.risk import assess_result_risk
 from ..mappings import enrich
 from .models import (
     AssessmentReport,
     AssessmentRequest,
     EvaluationResult,
     Finding,
-    Impact,
-    Likelihood,
     Outcome,
-    RiskRating,
-    Severity,
     TargetResponse,
     TestCase,
 )
-
-SEVERITY_BASE = {
-    Severity.INFORMATIONAL: 0.5,
-    Severity.LOW: 2.0,
-    Severity.MEDIUM: 5.0,
-    Severity.HIGH: 8.0,
-    Severity.CRITICAL: 10.0,
-}
 
 
 class AssessmentOrchestrator:
@@ -71,59 +60,12 @@ class AssessmentOrchestrator:
         )
         return self.registry.get(evaluator_name)
 
-    @staticmethod
-    def _risk(test_case: TestCase, result: EvaluationResult) -> RiskRating:
-        if result.outcome is Outcome.PASS:
-            likelihood = Likelihood.LOW
-            impact = Impact.LOW
-        elif result.outcome is Outcome.REVIEW:
-            likelihood = Likelihood.MEDIUM
-            impact = Impact.MEDIUM
-        else:
-            likelihood = Likelihood.HIGH
-            impact = (
-                Impact.HIGH
-                if test_case.severity in {Severity.HIGH, Severity.CRITICAL}
-                else Impact.MEDIUM
-            )
-
-        impact_factor = {
-            Impact.LOW: 0.5,
-            Impact.MEDIUM: 0.75,
-            Impact.HIGH: 1.0,
-        }[impact]
-
-        likelihood_factor = {
-            Likelihood.LOW: 0.5,
-            Likelihood.MEDIUM: 0.75,
-            Likelihood.HIGH: 1.0,
-        }[likelihood]
-
-        score = round(
-            SEVERITY_BASE[test_case.severity]
-            * impact_factor
-            * likelihood_factor,
-            2,
-        )
-
-        return RiskRating(
-            severity=test_case.severity,
-            likelihood=likelihood,
-            impact=impact,
-            score=score,
-            rationale=(
-                f"{test_case.severity.value} severity × "
-                f"{likelihood.value} likelihood × "
-                f"{impact.value} impact."
-            ),
-        )
-
     def _finding(
         self,
         test_case: TestCase,
         result: EvaluationResult,
     ) -> Finding:
-        risk = self._risk(test_case, result)
+        risk = assess_result_risk(test_case, result)
 
         return Finding(
             id=test_case.id,

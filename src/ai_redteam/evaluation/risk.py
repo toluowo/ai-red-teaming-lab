@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 from ..core.models import (
+    EvaluationResult,
     Impact,
     Likelihood,
+    Outcome,
     RiskRating,
     Severity,
     TestCase,
@@ -47,4 +49,30 @@ def assess_risk(
             f"{likelihood.value.lower()} likelihood and "
             f"{impact.value.lower()} impact."
         ),
+    )
+
+def assess_result_risk(
+    test_case: TestCase,
+    result: EvaluationResult,
+) -> RiskRating:
+    """Derive risk dimensions from an evaluation outcome."""
+
+    if result.outcome is Outcome.PASS:
+        likelihood = Likelihood.LOW
+        impact = Impact.LOW
+    elif result.outcome is Outcome.REVIEW:
+        likelihood = Likelihood.MEDIUM
+        impact = Impact.MEDIUM
+    else:
+        likelihood = Likelihood.HIGH
+        impact = (
+            Impact.HIGH
+            if test_case.severity in {Severity.HIGH, Severity.CRITICAL}
+            else Impact.MEDIUM
+        )
+
+    return assess_risk(
+        test_case,
+        likelihood=likelihood,
+        impact=impact,
     )
