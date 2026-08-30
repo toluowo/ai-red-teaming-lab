@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from dataclasses import replace
-from typing import Any
 
+from ..evaluation.base import Evaluator
 from ..evaluation.evidence import collect_evidence
 from ..evaluation.registry import EvaluatorRegistry
 from ..evaluation.risk import assess_result_risk
@@ -17,12 +17,13 @@ from .models import (
     TargetResponse,
     TestCase,
 )
+from .protocols import TargetAdapter
 
 
 class AssessmentOrchestrator:
     def __init__(
         self,
-        evaluator: Any = None,
+        evaluator: Evaluator | None = None,
         registry: EvaluatorRegistry | None = None,
     ):
         self.registry = registry or EvaluatorRegistry()
@@ -36,7 +37,7 @@ class AssessmentOrchestrator:
             self.default_evaluator = BehaviourEvaluator()
             self.registry.register(self.default_evaluator)
 
-    def _select_evaluator(self, test_case: TestCase) -> Any:
+    def _select_evaluator(self, test_case: TestCase) -> Evaluator:
         return self.registry.for_test_case(
             test_case,
             default=self.default_evaluator,
@@ -123,21 +124,24 @@ class AssessmentOrchestrator:
     def run(
         self,
         test_cases: Iterable[TestCase],
-        target: Any,
+        target: TargetAdapter,
     ) -> AssessmentReport:
         # Materialize once so generators/iterators can safely be reused.
         cases = [enrich(case) for case in test_cases]
 
         findings: list[Finding] = []
 
+        evaluator_names: set[str] = set()
+
         for test_case in cases:
             request = AssessmentRequest(
                 test_case_id=test_case.id,
                 input_text=test_case.prompt,
             )
-
             response: TargetResponse = target.invoke(request)
             evaluator = self._select_evaluator(test_case)
+            evaluator_names.add(evaluator.name)
+
             result: EvaluationResult = evaluator.evaluate(test_case, response)
 
             # Ensure evidence is always available even for custom evaluators.
@@ -166,11 +170,6 @@ class AssessmentOrchestrator:
                     finding.outcome is Outcome.PASS
                     for finding in findings
                 ),
-                "evaluators": sorted(
-                    {
-                        self._select_evaluator(case).name
-                        for case in cases
-                    }
-                ),
+                "evaluators": sorted(evaluator_names),
             },
         )
