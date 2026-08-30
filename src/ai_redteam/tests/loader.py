@@ -249,6 +249,7 @@ def load_test_case(path: str | Path) -> TestCase:
                 if raw.get("evaluator") is not None
                 else None
             ),
+            source_path=str(path),
         )
     )
 

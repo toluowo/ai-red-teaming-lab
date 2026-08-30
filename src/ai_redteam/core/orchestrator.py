@@ -63,6 +63,7 @@ class AssessmentOrchestrator:
             owasp=test_case.owasp,
             mitre_atlas=test_case.mitre_atlas,
             nist=test_case.nist,
+            source_path=test_case.source_path,
             remediation=self._remediation(test_case),
             retest_required=result.outcome is Outcome.FAIL,
         )

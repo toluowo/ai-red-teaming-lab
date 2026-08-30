@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from ..core.models import AssessmentReport, Outcome
+from ..core.models import AssessmentReport, Finding, Outcome
 
 SARIF_SCHEMA = (
     "https://json.schemastore.org/"
@@ -21,6 +21,21 @@ def _level(outcome: Outcome) -> str:
         Outcome.PASS: "note",
     }[outcome]
 
+def _location(finding: Finding) -> dict[str, Any]:
+    source_path = finding.source_path or (
+        f"test_cases/{finding.id}.yaml"
+    )
+
+    return {
+        "physicalLocation": {
+            "artifactLocation": {
+                "uri": source_path,
+            },
+            "region": {
+                "startLine": 1,
+            },
+        }
+    }
 
 def to_sarif(
     report: AssessmentReport,
@@ -64,6 +79,9 @@ def to_sarif(
                 "message": {
                     "text": finding.description,
                 },
+                "locations": [
+                    _location(finding),
+                ],
                 "properties": {
                     "risk_score": finding.risk.score,
                     "confidence": finding.confidence.value,

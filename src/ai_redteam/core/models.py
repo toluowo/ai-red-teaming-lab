@@ -95,6 +95,7 @@ class TestCase:
     tags: tuple[str, ...] = ()
     attack_pattern_name: str | None = None
     evaluator: str | None = None
+    source_path: str | None = None
 
     @property
     def attack_pattern(self) -> str:
@@ -134,6 +135,7 @@ class Finding:
     owasp: tuple[str, ...] = ()
     mitre_atlas: tuple[str, ...] = ()
     nist: tuple[str, ...] = ()
+    source_path: str | None = None
     remediation: str = ""
     retest_required: bool = True
 

@@ -25,6 +25,34 @@ class AssessmentEngineTests(unittest.TestCase):
         self.assertEqual(case.severity, Severity.HIGH)
         self.assertIn("LLM01", case.owasp)
 
+    def test_sarif_findings_include_source_locations(self):
+        from ai_redteam.reporting.sarif import to_sarif
+
+        cases = discover_test_cases("test_cases")
+        report = AssessmentOrchestrator(BehaviourEvaluator()).run(
+            cases, SyntheticTarget()
+        )
+
+        payload = to_sarif(report)
+
+        for finding, result in zip(
+            report.findings,
+            payload["runs"][0]["results"],
+            strict=True,
+        ):
+            self.assertTrue(result["locations"])
+
+            location = result["locations"][0]["physicalLocation"]
+
+            self.assertEqual(
+                location["artifactLocation"]["uri"],
+                finding.source_path,
+            )
+            self.assertEqual(
+                location["region"]["startLine"],
+                1,
+            )
+
     def test_synthetic_target_returns_structured_response(self):
         response = SyntheticTarget().invoke(
             AssessmentRequest(
