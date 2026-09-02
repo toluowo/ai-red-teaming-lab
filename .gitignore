@@ -5,3 +5,9 @@ venv/
 .pytest_cache/
 reports/test_results_*.json
 .DS_Store
+
+# Python build metadata
+*.egg-info/
+
+# Generated security reports
+*.sarif
