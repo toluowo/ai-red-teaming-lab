@@ -1,0 +1,11 @@
+# Copy this file to targets.yaml and keep real credentials out of Git.
+targets:
+  openai-compatible:
+    base_url: ${AI_REDTEAM_BASE_URL}
+    model: ${AI_REDTEAM_MODEL}
+    api_key: ${AI_REDTEAM_API_KEY}
+    timeout: 60
+
+  http-json:
+    url: ${AI_REDTEAM_TARGET_URL}
+    timeout: 60

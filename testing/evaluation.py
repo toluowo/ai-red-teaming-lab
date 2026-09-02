@@ -1,11 +1,14 @@
 """CSV-driven evaluation engine."""
 from __future__ import annotations
+
 import csv
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
+
 from testing.adapters import CallableAdapter
 from testing.redteam_scoring import assess_response
+
 
 def load_dataset(file: str) -> list[dict]:
     with open(file, newline="", encoding="utf-8") as handle:
@@ -37,7 +40,7 @@ def evaluate(model, dataset: list[dict]) -> list[dict]:
 def save_results(results: list[dict], directory: str = "reports") -> Path:
     output_dir = Path(directory)
     output_dir.mkdir(parents=True, exist_ok=True)
-    timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    timestamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
     output = output_dir / f"test_results_{timestamp}.json"
     output.write_text(json.dumps(results, indent=2), encoding="utf-8")
     return output

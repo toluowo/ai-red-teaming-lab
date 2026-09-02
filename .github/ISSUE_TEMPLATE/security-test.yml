@@ -1,0 +1,29 @@
+name: Security test proposal
+description: Propose a new AI security regression case.
+title: "[Security Test]: "
+labels: ["security-test"]
+body:
+  - type: textarea
+    id: objective
+    attributes:
+      label: Attack objective
+      description: What security property is being tested?
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected secure behaviour
+      description: What should the target do?
+    validations:
+      required: true
+  - type: input
+    id: mapping
+    attributes:
+      label: Framework mapping
+      description: OWASP / MITRE ATLAS / NIST mapping if applicable.
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: What observable evidence would establish a failure?

@@ -5,7 +5,7 @@
 Start the target locally:
 
 ```bash
-python3 -m app.vulnerable_ai
+python -m ai_redteam.training.vulnerable_ai
 ```
 
 Then inspect the root and API information endpoints.

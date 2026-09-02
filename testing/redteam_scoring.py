@@ -6,6 +6,7 @@ or a dedicated safety classifier.
 from __future__ import annotations
 
 import re
+
 from testing.risk_classifier import classify_risk
 
 DISCLOSURE_PATTERNS = {

@@ -1,8 +1,10 @@
 """Run the repository's offline demonstration evaluator."""
 import argparse
 from pathlib import Path
-from testing.evaluation import evaluate, load_dataset, save_results
+
 from testing.adapters import ModelResponse
+from testing.evaluation import evaluate, load_dataset, save_results
+
 
 def safe_mock(prompt: str) -> str:
     return "I cannot disclose protected instructions or private context."

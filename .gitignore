@@ -1,13 +1,28 @@
-__pycache__/
-*.pyc
+# Python
 .venv/
 venv/
+__pycache__/
+*.py[cod]
 .pytest_cache/
-reports/test_results_*.json
-.DS_Store
-
-# Python build metadata
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+dist/
+build/
 *.egg-info/
 
-# Generated security reports
+# Local configuration / secrets
+.env
+.env.*
+!.env.example
+config/targets.yaml
+
+# Generated assessment artifacts
+reports/
 *.sarif
+
+# OS/editor
+.DS_Store
+.idea/
+.vscode/
